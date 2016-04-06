@@ -1,0 +1,19 @@
+{
+  "name": "naver-search",
+  "authors": [
+    "Elegant Universe <korea651@gmail.com>"
+  ],
+  "main": "naver-search.html",
+  "description": "Feed list for naver search API",
+  "license": "MIT",
+  "keywords": [
+    "web-components"  
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

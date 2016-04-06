@@ -1,0 +1,191 @@
+<dom-module id="naver-search">
+	<style>
+		:host {			        							
+		    @apply(--layout-vertical);
+		    @apply(--paper-font-common-base);
+		    display: block;
+		    font-family: sans-serif;
+		    width: 800px;
+		    height: 400px;
+		    background: #fff;
+		}
+
+		.listWrapper {
+			@apply(--layout-flex);
+	        @apply(--layout-horizontal);
+	        overflow: hidden;
+		}
+
+		.primary {			
+	        font-size: 16px;
+	    }
+      	.secondary {
+        	font-size: 12px;
+        	color: gray;
+      	}
+
+      	paper-tabs {
+      		background-color: #00bcd4;;
+	        color: #fff;		  
+	        --paper-tabs-selection-bar-color: white;	        
+		}				
+
+
+		paper-tab.iron-selected {
+		    color: #ffff8d;		    
+		}				
+
+      	.navigator {
+	  		@apply(--layout-horizontal);      		
+	  	}
+
+	  	.navigator .navPage {
+	  		margin-top: 10px;
+	  	}		
+
+	  	#itemsList {
+        	@apply(--layout-flex);        	
+        	width: 100%;
+        	height: 400px;
+        	padding: 10px;  
+        	overflow: auto;
+      	}
+      	.item {
+        	@apply(--layout-horizontal);
+        	cursor: pointer;
+        	padding: 16px 12px;        	
+        	border-bottom: 1px solid #DDD;
+      	}
+      	.item:hover {
+        	background-color: var(--google-grey-100);
+      	}
+      	.item:focus,
+      	.item.selected:focus {
+        	outline: 0;
+      	}      	
+
+      	.item .field.stitle {
+      		width: 600px;
+      	}
+
+      	.item .field.sdate {
+      		width: 200px;
+      		color: #000;
+      	}
+      	
+	</style>
+
+	<template>
+		<iron-ajax	    
+	        id="ajaxCall"
+		      url="{{_computeGetUrl(stype, page, stag)}}"
+		      last-response="{{data}}"
+		      on-response="handleResponse"
+		      auto
+		    ></iron-ajax>
+
+	    <!-- <h2>LATEST NEWS</h2> -->
+
+		<paper-tabs id="typeTabs" selected="{{typeidx}}" noink>
+			<paper-tab>News</paper-tab>
+			<paper-tab>Blog</paper-tab>					
+		</paper-tabs>
+		
+		
+		<div class="listWrapper">				
+						
+			<iron-list id="itemsList" items="[[_computeFeedItem(data)]]" as="item" >
+				<template>										
+					<div class="item">						              	
+						<div class="field stitle"><a href="{{item.link}}" target="_blank"><div class="primary">{{_computeTrimTag(item.title)}}</div><div class="secondary">title</div></a></div>								
+						
+						<template is="dom-if" if="{{_computeIsNews(typeidx)}}">
+							<div class="field sdate"><div class="primary">{{_computeDateString(item.pubDate)}}</div><div class="secondary">pubDate</div></div>			
+						</template>		
+					</div>										
+				</template>
+			</iron-list>			
+		</div>
+
+	</template>	
+</dom-module>
+<script>
+	Polymer({
+		is: "naver-search",
+
+		properties: {
+			page: {
+	          type: Number,
+	          value: 0	                  	  
+	        },
+	        data: {
+	        	type: Array	        	
+	        },
+	        
+	      	stag: {
+	        	type: String,
+	        	value: ""
+	      	},
+
+	      	stype: {
+	      		type: String,
+	      		value: "news"
+	      	},
+	      	typeidx: {
+				type: Number,
+				value: 0,	
+				observer: "_typeIdxChanged"
+			}
+		},
+
+		ready: function() {                              	
+        },
+
+        _computeGetUrl: function(stype, page, stag) {        	
+        	var tag =  encodeURIComponent(stag);
+        	return "/api/getnaverfeed/"+stype+"/"+tag+"/"+page;        	 
+        },
+
+        _computeFeedItem: function(data) {        	
+        	return data.rss.channel[0].item;
+        },
+
+        _computeTrimTag: function(title) {
+        	var str = String(title);        	
+			return str.replace(/(<([^>]+)>)/ig,"");
+        },
+
+        _computeIsNews: function(typeidx) {
+        	return typeidx==0;
+        },
+
+        _computeDateString: function(date) {
+        	var date = new Date(date);
+        	 var result = {};
+	        result.dataYY = date.getFullYear();
+	        result.dataMM = date.getMonth()+1;
+	        result.dataDD = date.getDate();
+	        result.dataHH = date.getHours();
+	        result.dateKey = result.dataYY+"/"+result.dataMM+"/"+result.dataDD+" "+result.dataHH+":00";
+	        return result.dateKey;
+        },
+
+        _typeIdxChanged: function() {
+        	if(this.typeidx==0){
+        		this.stype = "news";
+        	} else if(this.typeidx==1){
+        		this.stype = "blog";
+        	}
+        },
+
+        leftNav: function() {                	
+	    	if(this.page>0){	
+	      		this.page--;                            		          		
+	      	}        	
+	  	},
+
+	  	rightNav: function() {	  		   
+	      	this.page++;	      	
+	  	}
+	});
+</script>
